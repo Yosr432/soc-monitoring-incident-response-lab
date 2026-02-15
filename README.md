@@ -46,78 +46,73 @@ Detailed architecture documentation is available in `docs/architecture.md`.
 
 ```mermaid
 flowchart LR
-  %% ======================
-  %% SOC Monitoring & IR Lab
-  %% ======================
 
-  subgraph Sources[Telemetry Sources]
-    W[Windows Endpoint\n(Sysmon)]
-    L[Linux Endpoint\n(auditd)]
-    N[Network Sensor\n(Suricata eve.json)]
-    C[Cloud Logs\n(AWS CloudTrail - simulated)]
+  subgraph Sources
+    W[Windows Sysmon]
+    L[Linux auditd]
+    N[Suricata eve.json]
+    C[AWS CloudTrail simulated]
   end
 
-  subgraph Collect[Collection & Normalization]
-    A[Wazuh Agents / Log Shippers]
-    M[Decoders + Normalizers]
+  subgraph Collect
+    A[Agents or Log Shippers]
+    D[Decoders and Normalization]
   end
 
-  subgraph SIEM[SIEM & Storage]
-    Z[Wazuh Manager]
-    O[OpenSearch Indexing]
+  subgraph SIEM
+    WM[Wazuh Manager]
+    OS[OpenSearch]
   end
 
-  subgraph Detect[Detection & Correlation]
-    WR[Wazuh Rules]
-    SG[Sigma Rules (portable)]
-    CR[Correlation Logic\n(multi-source)]
+  subgraph Detect
+    R[Wazuh Rules]
+    S[Sigma Rules]
+    X[Correlation]
   end
 
-  subgraph Enrich[Enrichment & Scoring]
-    TI[Threat Intel\n(IOC feed, reputation)]
-    GEO[GeoIP / ASN Context]
-    AL[Allowlist / Suppression]
-    SC[Alert Scoring\n(severity, confidence)]
+  subgraph Enrich
+    TI[Threat Intel]
+    G[GeoIP and ASN]
+    AL[Allowlist]
+    SC[Scoring]
   end
 
-  subgraph Case[Investigation & Case Management]
+  subgraph Cases
     TL[Timeline Builder]
-    CT[Case Templates\n(incident + exec summary)]
-    CS[Case Files\n(MD reports)]
+    TPL[Case Templates]
+    CF[Case Files]
   end
 
-  subgraph Report[Reporting & Improvement]
-    KPI[Monthly KPIs\n(MTTR, FP rate, trends)]
-    TN[Tuning Notes\n(false positives)]
-    SR[Suppression Rules\n(YAML)]
+  subgraph Report
+    KPI[Monthly KPIs]
+    TN[Tuning Notes]
+    SUP[Suppression Rules]
   end
 
-  %% Flows
   W --> A
   L --> A
   N --> A
   C --> A
 
-  A --> M --> Z --> O
+  A --> D --> WM --> OS
 
-  O --> WR
-  O --> SG
-  WR --> CR
-  SG --> CR
+  OS --> R
+  OS --> S
+  R --> X
+  S --> X
 
-  CR --> TI
-  CR --> GEO
-  CR --> AL
-  TI --> SC
-  GEO --> SC
-  AL --> SC
+  X --> TI --> SC
+  X --> G --> SC
+  X --> AL --> SC
 
-  SC --> TL --> CS
-  CT --> CS
+  SC --> TL --> CF
+  TPL --> CF
 
-  CS --> KPI
-  CS --> TN --> SR
-  SR --> WR
+  CF --> KPI
+  CF --> TN --> SUP
+  SUP --> R
+
+
 ```
 
 ## Incident Scenarios
